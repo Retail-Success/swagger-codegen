@@ -99,14 +99,14 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
   public RscsharpclientcodegenGenerator() {
         super();
         supportsInheritance = true;
-
+        sourceFolder = "source";
         modelTemplateFiles.put("model.mustache", ".cs");
 
         //modelDocTemplateFiles.put("model_doc.mustache", ".md");
         //apiDocTemplateFiles.put("api_doc.mustache", ".md");
 
         hideGenerationTimestamp = Boolean.TRUE;
-
+        
         cliOptions.clear();
 
         // CLI options
@@ -281,11 +281,11 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
     }
 
     if (additionalProperties.containsKey(this.PACKAGE_MAJOR_VERSION)) {
-      this.packageMajorVersion = (String) additionalProperties.get(this.PACKAGE_MAJOR_VERSION);
+      this.packageMajorVersion = additionalProperties.get(this.PACKAGE_MAJOR_VERSION).toString();
     }
 
     if (additionalProperties.containsKey(this.PACKAGE_MINOR_VERSION)) {
-      this.packageMinorVersion = (String) additionalProperties.get(this.PACKAGE_MINOR_VERSION);
+      this.packageMinorVersion = additionalProperties.get(this.PACKAGE_MINOR_VERSION).toString();
     }
 
     if (additionalProperties.containsKey(this.API_SCOPES_COMMA_SEPERATED)) {
@@ -397,16 +397,11 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
     additionalProperties.put("binRelativePath", binRelativePath);
 
     supportingFiles.add(new SupportingFile("Solution.mustache", "", packageName + ".sln"));
-    supportingFiles
-        .add(new SupportingFile("csproj.mustache", sourceFolder + "/" + packageName, packageName + ".csproj"));
-    supportingFiles
-        .add(new SupportingFile("clientoptions.mustache", sourceFolder + "/" + packageName, "ClientOptions.cs"));
-    supportingFiles.add(new SupportingFile("dependencyinjection.mustache", sourceFolder + "/" + packageName,
-        "DependencyInjectionExtensions.cs"));
-    supportingFiles.add(new SupportingFile("clientclass.mustache", sourceFolder + "/" + packageName + "/" + apiPackage,
-        serviceName + "Client.cs"));
-    supportingFiles.add(new SupportingFile("endpointinterface.mustache",
-        sourceFolder + "/" + packageName + "/" + apiPackage, "I" + serviceName + "Client.cs"));
+    supportingFiles.add(new SupportingFile("csproj.mustache", sourceFolder + "/" + packageName, packageName + ".csproj"));
+    supportingFiles.add(new SupportingFile("clientoptions.mustache", sourceFolder + "/" + packageName, "ClientOptions.cs"));
+    supportingFiles.add(new SupportingFile("dependencyinjection.mustache", sourceFolder + "/" + packageName, "DependencyInjectionExtensions.cs"));
+    supportingFiles.add(new SupportingFile("clientclass.mustache", sourceFolder + "/" + packageName + "/" + apiPackage,serviceName + "Client.cs"));
+    supportingFiles.add(new SupportingFile("endpointinterface.mustache",sourceFolder + "/" + packageName + "/" + apiPackage, "I" + serviceName + "Client.cs"));
     supportingFiles.add(new SupportingFile("VstsPackageVersion.mustache", ".ci", "VstsPackageVersion.ps1"));
     supportingFiles.add(new SupportingFile("azure-pipelines.mustache", ".ci", "azure-pipelines.yaml"));
 
