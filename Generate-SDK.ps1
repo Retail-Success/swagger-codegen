@@ -7,26 +7,25 @@ This script will generate an SDK client for the given api
   -SwaggerUrl 'http://localhost:80/swagger/v1/swagger.json' `
   -SDKClientPath '
 #>
-#function Generate-SDK {
-#param(
-    [String] $SwaggerUrl = "https://viewstoresapi.bless-dev.com/swagger/v1/swagger.json"
-    [System.IO.FileInfo] $SDKClientPath = "C:\Users\kyled\source\repos\Bless.Stores.View.Api\client"
-    [String] $DomainOwner = "Bless"
-    [String] $ServiceName = "StoresView"
-    [String[]] $Scopes = "viewstores"
-    [String] $ModelPackage = "Models"
-    [String] $ApiPackage = "Api"
-    [Int] $PackageMajorVersion = 1
-    [Int] $PackageMinorVersion = 0
-    [String] $IdentityModelVersion = "3.10.10"
-    [String] $NitoAsyncExCoordinationVersion = "5.0.0"
-    [String] $RefitVersion = "4.7.9"
-    [String] $RefitHttpClientFactoryVersion = "4.7.9"
-    [String] $RetailSuccessAuthenticationTokensVersion = "1.0.1"
+function Generate-SDK {
+param(
+    [String] $SwaggerUrl,
+    [System.IO.FileInfo] $SDKClientPath,
+    [String] $DomainOwner,
+    [String] $ServiceName,
+    [String[]] $Scopes,
+    [String] $ModelPackage = "Models",
+    [String] $ApiPackage = "Api",
+    [Int] $PackageMajorVersion = 1,
+    [Int] $PackageMinorVersion = 0,
+    [String] $IdentityModelVersion = "3.10.10",
+    [String] $NitoAsyncExCoordinationVersion = "5.0.0",
+    [String] $RefitVersion = "4.7.9",
+    [String] $RefitHttpClientFactoryVersion = "4.7.9",
+    [String] $RetailSuccessAuthenticationTokensVersion = "1.0.1",
     [String] $RetailSuccessSDKCoreVersion = "1.0.0"
-#)
+)
 
-Write-Host "Pulling codegen docker image"
 docker pull retailsuccess/swagger-codegen
 
 #Config values
@@ -79,3 +78,4 @@ Copy-Item $outFolder -Destination $SDKClientPath -Recurse -Container
 
 #clean up temp folder
 Remove-Item $tempFolder -Recurse -Force
+}
