@@ -1,0 +1,80 @@
+variables:
+- group: Git Connections
+- group: Nuget Connections
+- name: ReleaseBranch
+  value: refs/heads/master
+- name: PrereleaseBranch
+  value: refs/heads/feature/
+- name: PackageCsprojName
+  value: {{packageName}}.csproj
+- name: Configuration
+  value: Debug
+
+trigger:
+  branches:
+    include:
+    - '*'
+
+pool:
+  name: Default
+  demands: DotNetFramework
+
+resources:
+  repositories:
+    - repository: BuildUtilities
+      type: github
+      name: Retail-Success/RetailSuccess.BuildUtilities
+      endpoint: Github-Build
+
+steps:
+
+# don't need this on a self hosted box
+# - task: DotNetCoreInstaller@0
+#   inputs:
+#     version: '2.2.203'
+
+- task: NuGetToolInstaller@0
+  displayName: 'Use NuGet >=4.3'
+  inputs:
+    versionSpec: '>=4.3'
+
+- task: PowerShell@2
+  displayName: Populate Target Version
+  inputs:
+    targetType: filePath
+    filePath: '$(Build.SourcesDirectory)/.ci/VstsPackageVersion.ps1'
+    arguments: '-CsprojsPathFilter $(PackageCsprojName) -NugetSource "$(RetailSuccess.NugetPreauthUrl)" -StableRelease:$("$(Build.SourceBranch)" -eq "$(ReleaseBranch)")'
+
+- template: ci-templates/buildTestPack.yaml@BuildUtilities
+  parameters:
+    RetailSuccessNugetPreauthUrl: $(RetailSuccess.NugetPreauthUrl)
+    BuildCsprojs: $(Build.SourcesDirectory)\**\*.csproj
+    TestCsprojs: $(Build.SourcesDirectory)\**\*Test*.csproj
+    TargetVersion: $(TargetVersion)
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Push (if Release/Prerelease)'
+  inputs:
+    command: custom
+    arguments: 'push $(Build.ArtifactStagingDirectory)\**\*.nupkg $(RetailSuccess.NugetApiKey) -Source $(RetailSuccess.NugetPublishUrl)'
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], variables['ReleaseBranch']), startsWith(variables['Build.SourceBranch'], variables['PrereleaseBranch'])))
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Push Symbols (if Release/Prerelease)'
+  inputs:
+    command: custom
+    arguments: 'push $(Build.ArtifactStagingDirectory)\**\*.symbols.nupkg $(RetailSuccess.NugetApiKey) -Source $(RetailSuccess.NugetSymbolsPublishUrl)'
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], variables['ReleaseBranch']), startsWith(variables['Build.SourceBranch'], variables['PrereleaseBranch'])))
+
+- script: |
+   git tag v$(TargetVersion) $(Build.SourceVersion)
+   git -c http.extraheader="AUTHORIZATION: basic $(GitBasicAuthDigest)" push origin refs/tags/v$(TargetVersion)
+  displayName: 'Git Tag (if Release)'
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], variables['ReleaseBranch']), startsWith(variables['Build.SourceBranch'], variables['PrereleaseBranch'])))
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: NugetPackage
+

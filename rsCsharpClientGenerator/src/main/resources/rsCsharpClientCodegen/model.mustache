@@ -1,0 +1,16 @@
+using System;
+using System.Collections.Generic;
+
+{{#models}}
+{{#model}}
+namespace {{packageName}}.{{modelPackage}}
+{
+    public sealed class {{classname}}
+    {
+        {{#vars}}
+        public {{{datatype}}} {{name}} { get; set; }
+        {{/vars}}
+    }
+}
+{{/model}}
+{{/models}}

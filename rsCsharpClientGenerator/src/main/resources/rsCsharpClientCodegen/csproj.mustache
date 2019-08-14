@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <VersionPrefix>{{packageMajorVersion}}.{{packageMinorVersion}}</VersionPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IdentityModel" Version="{{packageVersionIdentityModel}}" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="{{packageVersionNitoAsyncExCoordination}}" />
+    <PackageReference Include="Refit" Version="{{packageVersionRefit}}" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="{{packageVersionRefitHttpClientFactory}}" />
+    <PackageReference Include="RetailSuccess.Authentication.Tokens" Version="{{packageVersionRetailSuccessAuthenticationTokens}}" />
+    <PackageReference Include="RetailSuccess.SDK.Core" Version="{{packageVersionRetailSuccessSDKCore}}"/>
+  </ItemGroup>
+
+</Project>

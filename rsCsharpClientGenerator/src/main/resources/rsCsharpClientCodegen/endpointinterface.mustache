@@ -1,0 +1,29 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Refit;
+using {{packageName}}.Models;
+using RetailSuccess.SDK.Core.Models;
+
+namespace {{packageName}}.{{apiPackage}}
+{
+    public interface I{{serviceName}}Client
+    {
+        {{#apiInfo}}
+        {{#apis}}
+        #region {{classFilename}}
+        {{#operations}}
+        {{#operation}}
+        [{{#lambda.titlecase}}{{httpMethod}}{{/lambda.titlecase}}("{{{path}}}")]
+        Task<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Ok{{/returnType}}> {{operationId}}Async ({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{#optionalMethodArgument}} = null{{/optionalMethodArgument}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+        {{^-last}}
+
+        {{/-last}}
+        {{/operation}}
+        {{/operations}}
+        #endregion
+        {{/apis}}
+        {{/apiInfo}}
+    }
+}

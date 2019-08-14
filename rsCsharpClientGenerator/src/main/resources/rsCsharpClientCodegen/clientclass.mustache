@@ -1,0 +1,47 @@
+using System.Threading.Tasks;
+using RetailSuccess.SDK.Core;
+using RetailSuccess.SDK.Core.Models;
+using {{packageName}}.{{modelPackage}};
+using System.Collections.Generic;
+
+namespace {{packageName}}.{{apiPackage}}
+{
+    public class {{serviceName}}Client
+    {
+        private readonly I{{serviceName}}Client _apiClient;
+
+        public {{serviceName}}Client(I{{serviceName}}Client client)
+        {
+            _apiClient = client;
+        }
+
+        {{#apiInfo}}
+        {{#apis}}
+        #region {{classFilename}}
+        {{#operations}}
+        {{#operation}}
+        ///<summary>
+        ///{{summary}}
+        ///</summary>
+        ///<remarks>
+        ///{{notes}}
+        ///</remarks>
+        {{#allParams}}/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
+        {{/allParams}}/// <returns>{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Ok{{/returnType}}</returns>
+        public async Task<Result<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Ok{{/returnType}},ErrorResult>> {{operationId}}Async({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{#optionalMethodArgument}} = null{{/optionalMethodArgument}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+        {
+            return await Response.Handle(() => _apiClient.{{operationId}}Async({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}));
+        }
+        {{^-last}}
+
+        {{/-last}}
+        {{/operation}}
+        {{/operations}}
+        #endregion
+        {{^-last}}
+
+        {{/-last}}
+        {{/apis}}
+        {{/apiInfo}}
+    }
+}

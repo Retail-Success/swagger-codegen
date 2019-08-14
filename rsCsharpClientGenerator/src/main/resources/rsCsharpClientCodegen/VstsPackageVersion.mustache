@@ -1,0 +1,380 @@
+#
+# VstsPackageVersion.ps1
+#
+
+param(
+    [String]$CsprojsPathFilter = "*.csproj",
+    [switch]$StableRelease,
+	[string]$FeatureBranch = $null,
+    [string]$NugetSource = "RetailSuccess",
+    [string]$SuffixText = "beta",
+    [switch]$DontUpdateBuildNumber
+)
+function Main-Logic {
+    [CsprojPackageInfo]$csproj = Get-CsprojByFilter $CsprojsPathFilter
+
+    if ($csproj -eq $null)
+    {
+        return;
+    }
+
+    Write-Host "Using csproj from path: $($csproj.Path)"
+
+    Write-Host "Getting package versions from nuget for package name: $($csproj.PackageId)"
+    $nugetVersions = Get-AllPackageVersions $csproj.PackageId
+
+    Default-VersionPrefixFromNuget $csproj $nugetVersions
+
+    Write-Host "The target prefix is $($csproj.VersionPrefix)"
+
+    [VersionDef]$latest = Get-LatestMatchingVersion $nugetVersions $csproj.VersionPrefix
+
+    $targetVersion = Find-NextReleaseVersion $latest $csproj.VersionPrefix
+
+    Write-Host "Our final version number is $targetVersion"
+
+    Write-VsBuild-TargetVersion $targetVersion
+}
+
+function Append-BuildSuffix {
+    [OutputType([VersionDef])]
+    Param([VersionDef]$version)
+
+    $buildId = [int]$env:BUILD_BUILDID
+	If ($FeatureBranch)
+	{
+		$version.Suffix = "$($SuffixText).$($FeatureBranch).$($buildId.ToString("00000"))"
+	}
+	Else {
+		$version.Suffix = "$($SuffixText)$($buildId.ToString("00000"))"
+	}
+
+    return $version
+}
+
+function Find-NextReleaseVersion {
+    [OutputType([VersionDef])]
+    Param(
+        [VersionDef]$latestVersion,
+        [VersionDef]$prefix
+    )
+
+    If ($latestVersion -eq $null)
+    {
+        $targetVersion = $csproj.VersionPrefix.ZeroFill()
+        Write-Host "There are no nuget versions matching that prefix, so we'll default to $targetVersion"
+    }
+    Else 
+    {
+        Write-Host "The latest nuget version matching that prefix is $latestVersion"
+
+        $targetVersion = $latestVersion
+        If (-not $latest.Suffix)
+        {
+            $targetVersion = Increment-VersionByPrefix $targetVersion $csproj.VersionPrefix
+            Write-Host "That is a release version, so our next release version is incremented to $targetVersion"
+        }
+        Else
+        {
+            $targetVersion = New-Object VersionDef $latestVersion.Major, $latestVersion.Minor, $latestVersion.Patch, $null
+            Write-Host "That is a pre-release version, so our release version is $targetVersion"
+        }
+    }
+
+    If ($StableRelease)
+    {
+        Write-Host "Since we need a stable release version, we're all done here."
+    }
+    Else
+    {
+        Write-Host "Since we need a prerelease version, we need to tack on a suffix."
+        $targetVersion = Append-BuildSuffix $targetVersion
+    }
+    return $targetVersion
+}
+
+function Default-VersionPrefixFromNuget {
+    Param(
+        [CsprojPackageInfo]$csProjInfo,
+        [VersionDef[]]$nugetVersions
+    )
+    If(-not $csProjInfo.VersionPrefix)
+    {
+        Write-Host "##vso[task.logissue type=warning;] No VersionPrefix is defined for the csproj, so let's default to the latest major version from nuget"
+
+        If($nugetVersions)
+        {
+            [VersionDef]$latestVersion = $nugetVersions[0]
+        }
+        
+        if (-not $latestVersion)
+        {
+            Write-Host "##vso[task.logissue type=warning;] I can't find any versions in nuget, so let's default to a prefix of 0.*.*"
+            $csProjInfo.VersionPrefix = New-Object VersionDef 0, $null, $null, $null
+        }
+        else
+        {
+            Write-Host "Defaulting to a prefix for the latest major version ($($latestVersion.Major))"
+            $csProjInfo.VersionPrefix = New-Object VersionDef $latestVersion.Major, $null, $null, $null
+        }
+    }
+}
+
+function Increment-VersionByPrefix {
+    [OutputType([VersionDef])]
+    Param(
+        [VersionDef]$version,
+        [VersionDef]$prefix
+    )
+    $newVersion = New-Object VersionDef $version.Major, $version.Minor, $version.Patch, $null
+
+    if ($prefix.Major -eq $null)
+    {
+        $newVersion.Major = $newVersion.Major + 1
+        $newVersion.Minor = 0
+        $newVersion.Patch = 0
+    }
+    elseif ($prefix.Minor -eq $null)
+    {
+        $newVersion.Minor = $newVersion.Minor + 1
+        $newVersion.Patch = 0
+    }
+    else
+    {
+        $newVersion.Patch = $newVersion.Patch + 1
+    }
+
+    return $newVersion
+}
+
+function Get-CsprojByFilter {
+    [OutputType([CsprojPackageInfo])]
+    Param(
+        [String]$filter
+    )
+
+    [System.IO.FileInfo[]] $files = @(Get-ChildItem -Filter $filter -Recurse -Include "*.csproj")
+    $csprojs = [CsprojPackageInfo[]]@($files | %{
+        [xml]$csprojContents = Get-Content $_.FullName
+
+        $isPackableNode = Select-Xml -Xml $csprojContents -XPath "//IsPackable"
+        if ($isPackableNode)
+        {
+            if ($isPackableNode.Node.InnerText -like 'false')
+            {
+                Write-Host "##vso[task.logissue type=warning;] $($_.FullName) has an IsPackable flag of false. Skipping."
+                Continue
+            }
+        }
+
+        # Try to get the Package ID from the PackageId property
+        $packageIds = Select-Xml -Xml $csprojContents -XPath "//PackageId"
+
+        If ($packageIds -eq $null)
+        {
+	        # Fallback to AssemblyName, if defined.
+	        $packageIds = Select-Xml -Xml $csprojContents -XPath "//AssemblyName"
+        }
+
+        If ($packageIds -ne $null)
+        {
+	        # If either of those ways worked, fetch the name from the XML node
+	        $nugetPackageName = $packageIds.Node.InnerText
+        }
+        Else 
+        {
+	        # If no PackageId and no AssemblyName, default to the directory the 
+	        # csproj is in, since this is what the dotnet CLI does.
+	        $nugetPackageName = $_.Directory.Name;
+        }
+
+        $targetVersionPrefixNode = Select-Xml -Xml $csprojContents -XPath "//VersionPrefix"
+
+        If ($targetVersionPrefixNode -eq $null)
+        {
+	        Write-Host "##vso[task.logissue type=warning;] $($_.FullName) does not contain a VersionPrefix property."
+        }
+        Else
+        {
+	        $targetVersionPrefix = New-Object VersionDef $targetVersionPrefixNode.Node.InnerText
+        }
+        return New-Object CsprojPackageInfo $_.FullName, $nugetPackageName, $targetVersionPrefix
+    })
+
+    $csprojsWithPrefix = @($csprojs | ?{ $_.VersionPrefix -ne $null })
+    If ($csprojsWithPrefix.Count -gt 0)
+    {
+        If ($csprojsWithPrefix.Count -gt 1)
+        {
+            Write-Host "##vso[task.logissue type=warning;] More than one csproj was found with a VersionPrefix. Defaulting to first found."
+        }
+        return [CsprojPackageInfo]$csprojsWithPrefix[0];
+    }
+    ElseIf ($csprojs.Count -gt 0)
+    {
+        Write-Host "##vso[task.logissue type=warning;] We found at least one csproj but none have a VersionPrefix. We'll still use it to figure out the package name."
+        If ($csprojs.Count -gt 1)
+        {
+            Write-Host "##vso[task.logissue type=warning;] More than one csproj was found. Defaulting to first found."
+        }
+        return [CsprojPackageInfo]$csprojs[0];
+    }
+    Else
+    {
+        Write-Host "##vso[task.logissue type=error;] We couldn't find any csprojs matching the filter $filter, so we can't determine package name and versions."
+        return $null;
+    }
+}
+
+function Get-LatestMatchingVersion {
+    [OutputType([VersionDef])]
+    Param(
+        [VersionDef[]]$PackageVersions,
+        [VersionDef]$TargetVersionPrefix
+    )
+
+    if ($PackageVersions.count -lt 1)
+    {
+        return $null
+    }
+    else
+    {
+        $versions = $PackageVersions | ?{ $_.MatchesPrefix($TargetVersionPrefix) }
+        return $versions | Select -First 1
+    }    
+}
+
+function Get-AllPackageVersions {
+    [OutputType([VersionDef[]])]
+    Param(
+        [String]$PackageId
+    )
+    $nugetResults = nuget list "$PackageId" -AllVersions -Prerelease -Source $NugetSource
+
+    
+	if (-not ([regex]::Matches($nugetResults, "$([Regex]::Escape($PackageId)) [0-9]+(?:\.[0-9]+(?:\.[0-9]+(?:\-[\.\-a-zA-Z0-9]+)?)?)?")))
+    {
+        return [VersionDef[]]@()
+    }
+    else
+    {
+        $versionStrings = $nugetResults | ?{ $_ -match "$([Regex]::Escape($PackageId)) [0-9]+(?:\.[0-9]+(?:\.[0-9]+(?:\-[\.\-a-zA-Z0-9]+)?)?)?" } | %{ ([String]$_).Replace("$PackageId ", '') }
+        #$versionStrings = @(($nugetResults -match "$([Regex]::Escape($PackageId)) [0-9]+(?:\.[0-9]+(?:\.[0-9]+(?:\-[\.\-a-zA-Z0-9]+)?)?)?").Replace("$PackageId ", ''))
+
+        $versions = $versionStrings | %{New-Object VersionDef "$_"}
+
+        # Sort in proper-ish order
+        # Semvar is more complicated than this but this should work for our suffix scheme
+        $versions = $versions | Sort-Object -Property `
+            @{Expression="Major"; Descending=$True}, `
+            @{Expression="Minor"; Descending=$True}, `
+            @{Expression="Patch"; Descending=$True}, `
+            @{Expression={-not $_.Suffix}; Descending=$True}, `
+            @{Expression="Suffix"; Descending=$True}
+
+        return [VersionDef[]]@($versions)        
+    }
+}
+
+function Write-VsBuild-TargetVersion {
+    Param(
+        [VersionDef]$targetVersion
+    )
+
+    Write-Host "Setting TargetVersion variable to $targetVersion"
+    Write-Host "##vso[task.setvariable variable=TargetVersion]$targetVersion"
+    if (-not $DontUpdateBuildNumber)
+    {
+        Write-Host "Updating build number to $targetVersion"
+        Write-Host "##vso[build.updatebuildnumber]$targetVersion"
+    }
+    else
+    {
+        Write-Host "Build configured to NOT update the build number with the version"
+    }
+}
+
+Class VersionDef {
+    [int]$Major
+    [Nullable[int]]$Minor
+    [Nullable[int]]$Patch
+    [String]$Suffix
+
+    VersionDef([string]$VersionString)
+    {
+        if ($VersionString -match '^(?<Major>[0-9]+)(?:\.(?<Minor>[0-9]+)(?:\.(?<Patch>[0-9]+)(?:\-(?<Suffix>[\.\-a-zA-Z0-9]+))?)?)?$')
+        {
+            if ($Matches.Major) {$this.Major = $Matches.Major}
+            if ($Matches.Minor) {$this.Minor = $Matches.Minor}
+            if ($Matches.Patch) {$this.Patch = $Matches.Patch}
+            if ($Matches.Suffix) {$this.Suffix = $Matches.Suffix}
+        }
+        else
+        {
+            Write-Host "##vso[task.logissue type=error;] The version string $VersionString does not match Major.Minor.Patch-Suffix syntax."
+            throw [System.InvalidOperationException] "The version string $VersionString does not match Major.Minor.Patch-Suffix syntax"
+        }        
+    }
+    VersionDef(
+        [int]$Major, 
+        [System.Nullable[int]]$Minor, 
+        [System.Nullable[int]]$Patch, 
+        [string]$Suffix)
+    {
+        $this.Major = $Major
+        $this.Minor = $Minor
+        $this.Patch = $Patch
+        $this.Suffix = $Suffix
+    }
+
+    [String] ToString()
+    {
+        $resultString = "$($this.Major)"
+
+        if ($this.Minor -ne $null)
+        {
+            $resultString = "$($resultString).$($this.Minor)"
+
+            if ($this.Patch -ne $null)
+            {
+                $resultString = "$($resultString).$($this.Patch)"
+
+                if ($this.Suffix)
+                {
+                    $resultString = "$($resultString)-$($this.Suffix)"
+                }
+            }
+        }
+        return [string]$resultString
+    }
+
+    [bool] MatchesPrefix([VersionDef]$Prefix)
+    {
+        if ($Prefix.Major -ne $null -and $this.Major -ne $Prefix.Major ) { return $false }
+        if ($Prefix.Minor -ne $null -and $this.Minor -ne $Prefix.Minor ) { return $false }
+        if ($Prefix.Patch -ne $null -and $this.Patch -ne $Prefix.Patch ) { return $false }
+        return $true
+    }
+
+    [VersionDef] ZeroFill()
+    {
+        $zeroFilled = New-Object VersionDef $this.Major, $this.Minor, $this.Patch, $this.Suffix
+        if ($zeroFilled.Minor -eq $null) {$zeroFilled.Minor = 0}
+        if ($zeroFilled.Patch -eq $null) {$zeroFilled.Patch = 0}
+        return $zeroFilled
+    }
+}
+Class CsprojPackageInfo {
+    [String]$Path
+    [String]$PackageId
+    [VersionDef]$VersionPrefix
+
+    CsprojPackageInfo([String]$Path, [String]$PackageId, [VersionDef]$VersionPrefix)
+    {
+        $this.Path = $Path
+        $this.PackageId = $PackageId
+        $this.VersionPrefix = $VersionPrefix
+    }
+}
+
+Main-Logic
