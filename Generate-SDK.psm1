@@ -48,7 +48,7 @@ mkdir $tempFolder -Force
 Get-ChildItem $tempFolder -Recurse | Remove-Item
 
 #create a temp folder
-$tempFolder=Join-Path -Path $pwd.Path -ChildPath ".tmp"
+$tempFolder=Join-Path -Path $env:Temp -ChildPath $ServiceName+".SDKBuilder"
 
 #location for configuration files to mount inside the container
 $configFolder=Join-Path -Path $tempFolder -ChildPath "config"
