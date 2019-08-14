@@ -477,7 +477,7 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
 
   @Override
   public String getName() {
-    return "csharp";
+    return "rsCsharp";
   }
 
   @Override
