@@ -1,9 +1,9 @@
 ﻿param(
-    [String] $SwaggerUrl,
-    [System.IO.FileInfo] $SDKClientPath,
-    [String] $DomainOwner,
-    [String] $ServiceName,
-    [String[]] $Scopes,
+    [Parameter(Mandatory)] [String] $SwaggerUrl,
+    [Parameter(Mandatory)] [System.IO.FileInfo] $SDKClientPath,
+    [Parameter(Mandatory)] [String] $DomainOwner,
+    [Parameter(Mandatory)] [String] $ServiceName,
+    [Parameter(Mandatory)] [String[]] $Scopes,
     [String] $ModelPackage = "Models",
     [String] $ApiPackage = "Api",
     [Int] $PackageMajorVersion = 1,
@@ -15,6 +15,7 @@
     [String] $RetailSuccessAuthenticationTokensVersion = "1.0.1",
     [String] $RetailSuccessSDKCoreVersion = "1.0.0"
 )
+
 
 docker pull retailsuccess/swagger-codegen
 
