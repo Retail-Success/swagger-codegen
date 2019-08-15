@@ -1,12 +1,12 @@
-﻿<#
-.SYNOPSIS
-Write an SDK client
-.DESCRIPTION
-Writes a csharp SDK client to the specified directory using the docker image retailsuccess/swagger-codegen
-.EXAMPLE
-Generate-SDK -SwaggerUrl "localhost:80/swagger/v1/swagger.json" -DomainOwner "Bless" -ServiceName "ViewStores" -Scopes {"viewstores", "viewproducts"} -SDKClientPath .\client
+﻿Function Write-SDK {
+<#
+    .SYNOPSIS
+    Write an SDK client
+    .DESCRIPTION
+    Writes a csharp SDK client to the specified directory using the docker image retailsuccess/swagger-codegen
+    .EXAMPLE
+    Write-SDK -SwaggerUrl "localhost:80/swagger/v1/swagger.json" -DomainOwner "Bless" -ServiceName "ViewStores" -Scopes {"viewstores", "viewproducts"} -SDKClientPath .\client
 #>
-Function Write-SDK {
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
