@@ -1,6 +1,4 @@
-﻿Function Write-SDK {
-
-<#
+﻿<#
     .SYNOPSIS
     Write an SDK client
     .DESCRIPTION
@@ -9,7 +7,7 @@
     Generate-SDK -SwaggerUrl "localhost:80/swagger/v1/swagger.json" -DomainOwner "Bless" -ServiceName "ViewStores" -Scopes {"viewstores", "viewproducts"} -SDKClientPath .\client
 
 #>
-
+function Write-SDK {
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
