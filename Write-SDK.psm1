@@ -1,26 +1,12 @@
-﻿<#PSScriptInfo
-
-.VERSION
-1.0
-
-.GUID
-22146CA5-0214-479E-8CF6-9781495E9C22
-
-.AUTHOR
-kyled@retailsuccess.com
-
-.COMPANYNAME
-Retail Success
-
-#>
-
-<#
-
+﻿<#
+.SYNOPSIS
+Write an SDK client
 .DESCRIPTION
-Create a csharp sdk for an api using the docker image at retailsuccess/swagger-codegen
-
+Writes a csharp SDK client to the specified directory using the docker image retailsuccess/swagger-codegen
+.EXAMPLE
+Generate-SDK -SwaggerUrl "localhost:80/swagger/v1/swagger.json" -DomainOwner "Bless" -ServiceName "ViewStores" -Scopes {"viewstores", "viewproducts"} -SDKClientPath .\client
 #>
-Function Generate-SDK {
+Function Write-SDK {
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
