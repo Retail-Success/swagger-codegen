@@ -1,13 +1,25 @@
-﻿<#
-.SYNOPIS
-This script will generate an SDK client for the given api
+﻿<#PSScriptInfo
 
-.EXAMPLE
-./Generate-SDK.ps1 `
-  -SwaggerUrl 'http://localhost:80/swagger/v1/swagger.json' `
-  -SDKClientPath '
+.VERSION
+1.0
+
+.GUID
+22146CA5-0214-479E-8CF6-9781495E9C22
+
+.AUTHOR
+kyled@retailsuccess.com
+
+.COMPANYNAME
+Retail Success
+
 #>
-function Generate-SDK {
+
+<#
+
+.DESCRIPTION
+Create a csharp sdk for an api using the docker image at retailsuccess/swagger-codegen
+
+#>
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
@@ -79,4 +91,3 @@ Copy-Item $outFolder -Destination $SDKClientPath -Recurse -Container
 
 #clean up temp folder
 Remove-Item $tempFolder -Recurse -Force
-}
