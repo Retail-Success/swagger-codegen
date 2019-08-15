@@ -1,12 +1,15 @@
 ﻿Function Write-SDK {
+
 <#
     .SYNOPSIS
     Write an SDK client
     .DESCRIPTION
     Writes a csharp SDK client to the specified directory using the docker image retailsuccess/swagger-codegen
     .EXAMPLE
-    Write-SDK -SwaggerUrl "localhost:80/swagger/v1/swagger.json" -DomainOwner "Bless" -ServiceName "ViewStores" -Scopes {"viewstores", "viewproducts"} -SDKClientPath .\client
+    Generate-SDK -SwaggerUrl "localhost:80/swagger/v1/swagger.json" -DomainOwner "Bless" -ServiceName "ViewStores" -Scopes {"viewstores", "viewproducts"} -SDKClientPath .\client
+
 #>
+
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
@@ -43,9 +46,6 @@ $Options.Add('packageVersionRefitHttpClientFactory', $RefitHttpClientFactoryVers
 $Options.Add('packageVersionRetailSuccessAuthenticationTokens', $RetailSuccessAuthenticationTokensVersion)
 $Options.Add('packageVersionRetailSuccessSDKCore', $RetailSuccessSDKCoreVersion)
 
-mkdir $tempFolder -Force
-Get-ChildItem $tempFolder -Recurse | Remove-Item
-
 #create a temp folder
 $tempFolder=Join-Path -Path $env:Temp -ChildPath $ServiceName+".SDKBuilder"
 
@@ -74,10 +74,8 @@ docker run `
 
 #clear out current contents of client folder, then copy new client files over
 Get-ChildItem $SDKClientPath -Recurse | Remove-Item
-Copy-Item $outFolder -Destination $SDKClientPath -Recurse -Container
+Move-Item -Path $outFolder -Destination $SDKClientPath
 
-#clean up temp folder
-Remove-Item $tempFolder -Recurse -Force
 }
 
-Export-ModuleMember *-*
+Export-ModuleMember -Function Write-SDK
