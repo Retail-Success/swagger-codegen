@@ -20,6 +20,7 @@ Retail Success
 Create a csharp sdk for an api using the docker image at retailsuccess/swagger-codegen
 
 #>
+Function Generate-SDK {
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
@@ -91,3 +92,6 @@ Copy-Item $outFolder -Destination $SDKClientPath -Recurse -Container
 
 #clean up temp folder
 Remove-Item $tempFolder -Recurse -Force
+}
+
+Export-ModuleMember *-*
