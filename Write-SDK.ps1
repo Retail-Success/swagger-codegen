@@ -1,21 +1,72 @@
-﻿param(
+﻿[CmdletBinding()]
+param(
     [Parameter(Mandatory)] [String] $SwaggerUrl,
     [Parameter(Mandatory)] [System.IO.FileInfo] $SDKClientPath,
     [Parameter(Mandatory)] [String] $DomainOwner,
     [Parameter(Mandatory)] [String] $ServiceName,
     [Parameter(Mandatory)] [String[]] $Scopes,
-    [String] $ModelPackage = "Models",
-    [String] $ApiPackage = "Api",
-    [Int] $PackageMajorVersion = 1,
+    [String] $ModelPackage,
+    [String] $ApiPackage,
+    [Int] $PackageMajorVersion,
     [Int] $PackageMinorVersion = 0,
-    [String] $IdentityModelVersion = "3.10.10",
-    [String] $NitoAsyncExCoordinationVersion = "5.0.0",
-    [String] $RefitVersion = "4.7.9",
-    [String] $RefitHttpClientFactoryVersion = "4.7.9",
-    [String] $RetailSuccessAuthenticationTokensVersion = "1.0.1",
-    [String] $RetailSuccessSDKCoreVersion = "1.0.0"
+    [String] $IdentityModelVersion ,
+    [String] $NitoAsyncExCoordinationVersion,
+    [String] $RefitVersion,
+    [String] $RefitHttpClientFactoryVersion,
+    [String] $RetailSuccessAuthenticationTokensVersion,
+    [String] $RetailSuccessSDKCoreVersion
 )
 
+#because the default parameters don't want to work when called by another scrips...
+if($null -eq $ModelPackage)
+{
+    $ModelPackage = "Models"
+}
+
+if($null -eq $ApiPackage)
+{
+    $ApiPackage = "Api"
+}
+
+if($null -eq $PackageMajorVersion)
+{
+    $PackageMajorVersion = 1
+}
+
+if($null -eq $PackageMinorVersion)
+{
+    $PackageMinorVersion = 0
+}
+
+if($null -eq $IdentityModelVersion)
+{
+    $IdentityModelVersion = "3.10.10"
+}
+
+if($null -eq $NitoAsyncExCoordinationVersion)
+{
+    $NitoAsyncExCoordinationVersion = "5.0.0"
+}
+
+if($null -eq $RefitVersion)
+{
+    $RefitVersion = "4.7.9"
+}
+
+if($null -eq $RefitHttpClientFactoryVersion)
+{
+    $RefitHttpClientFactoryVersion = "4.7.9"
+}
+
+if($null -eq $RetailSuccessAuthenticationTokensVersion)
+{
+    $RetailSuccessAuthenticationTokensVersion = "1.0.1"
+}
+
+if($null -eq $RetailSuccessSDKCoreVersion)
+{
+    $RetailSuccessSDKCoreVersion = "1.0.0"
+}
 
 docker pull retailsuccess/swagger-codegen
 
@@ -62,5 +113,9 @@ docker run `
         --additional-properties excludeTests=true
 
 #clear out current contents of client folder, then copy new client files over
+if(-Not (Test-Path -Path $SDKClientPath))
+{
+    mkdir $SDKClientPath
+}
 Clear-Content $SDKClientPath
 Move-Item -Path $outFolder -Destination $SDKClientPath

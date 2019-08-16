@@ -12,6 +12,7 @@
 #>
 
 function Write-SDK {
+[CmdletBinding()]
 param(
     [String] $SwaggerUrl,
     [System.IO.FileInfo] $SDKClientPath,
