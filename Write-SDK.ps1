@@ -17,7 +17,7 @@ param(
 )
 docker pull retailsuccess/swagger-codegen
 
-#Config values
+#Config values for rsCsharp lang
 $Options=@{ }
 $Options.Add('domainOwner',$DomainOwner)
 $Options.Add('serviceName', $ServiceName)
@@ -59,9 +59,9 @@ docker run `
     -v ${outFolder}:/opt/swagger-codegen/out `
     retailsuccess/swagger-codegen generate `
         -i /opt/swagger-codegen/config/swagger.json `
-        -l rsCsharp `
+        -l  rsCsharp `
         -c /opt/swagger-codegen/config/config.json `
-        -o /opt/swagger-codegen/out `
+        -o /opt/swagger-codegen/out/csharp `
         --additional-properties excludeTests=true
 
 #clear out current contents of client folder, then copy new client files over
