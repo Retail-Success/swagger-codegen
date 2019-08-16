@@ -1,5 +1,4 @@
-﻿[CmdletBinding()]
-param(
+﻿param(
     [Parameter(Mandatory)] [String] $SwaggerUrl,
     [Parameter(Mandatory)] [System.IO.FileInfo] $SDKClientPath,
     [Parameter(Mandatory)] [String] $DomainOwner,
