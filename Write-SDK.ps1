@@ -7,7 +7,7 @@
     [String] $ModelPackage,
     [String] $ApiPackage,
     [Int] $PackageMajorVersion,
-    [Int] $PackageMinorVersion = 0,
+    [Int] $PackageMinorVersion,
     [String] $IdentityModelVersion ,
     [String] $NitoAsyncExCoordinationVersion,
     [String] $RefitVersion,
