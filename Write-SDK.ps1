@@ -17,56 +17,48 @@ param(
 )
 docker pull retailsuccess/swagger-codegen
 
-#Config values for rsCsharp lang
-$Options=@{ }
-$Options.Add('domainOwner',$DomainOwner)
-$Options.Add('serviceName', $ServiceName)
-$Options.Add('modelPackage', $ModelPackage)
-$Options.Add('apiPackage', $ApiPackage)
-$Options.Add('packageMajorVersion', $PackageMajorVersion)
-$Options.Add('packageMinorVersion', $PackageMinorVersion)
-$Options.Add('apiScopesCommaSeperated', ($Scopes -join ","))
-$Options.Add('packageVersionIdentityModel', $IdentityModelVersion)
-$Options.Add('packageVersionNitoAsyncExCoordination', $NitoAsyncExCoordinationVersion)
-$Options.Add('packageVersionRefit', $RefitVersion)
-$Options.Add('packageVersionRefitHttpClientFactory', $RefitHttpClientFactoryVersion)
-$Options.Add('packageVersionRetailSuccessAuthenticationTokens', $RetailSuccessAuthenticationTokensVersion)
-$Options.Add('packageVersionRetailSuccessSDKCore', $RetailSuccessSDKCoreVersion)
-
-#create a temp folder
-$tempFolder=Join-Path -Path $env:Temp -ChildPath "SDKBuilder"
-Remove-Item $tempFolder
-
 #location for configuration files to mount inside the container
-$configFolder=Join-Path -Path $tempFolder -ChildPath "config"
-$configPath=Join-Path -Path $configFolder -ChildPath "config.json"
+$configFolder=Join-Path -Path $pwd.Path -ChildPath ".codegen\config"
+$charpConfigPath=Join-Path -Path $configFolder -ChildPath "config.csharp.json"
 
-#location for codegen to place output files
-$outFolder=Join-Path -Path $tempFolder -ChildPath "out"
+if(-Not (Test-Path $configFolder))
+{
+    mkdir $configFolder
+}
 
-mkdir $configFolder -Force
-mkdir $outFolder -Force
+if(-Not (Test-Path $charpConfigPath))
+{
+    #Create config values for rsCsharp lang if not already there
+    $Options=@{ }
+    $Options.Add('domainOwner',$DomainOwner)
+    $Options.Add('serviceName', $ServiceName)
+    $Options.Add('modelPackage', $ModelPackage)
+    $Options.Add('apiPackage', $ApiPackage)
+    $Options.Add('packageMajorVersion', $PackageMajorVersion)
+    $Options.Add('packageMinorVersion', $PackageMinorVersion)
+    $Options.Add('apiScopesCommaSeperated', ($Scopes -join ","))
+    $Options.Add('packageVersionIdentityModel', $IdentityModelVersion)
+    $Options.Add('packageVersionNitoAsyncExCoordination', $NitoAsyncExCoordinationVersion)
+    $Options.Add('packageVersionRefit', $RefitVersion)
+    $Options.Add('packageVersionRefitHttpClientFactory', $RefitHttpClientFactoryVersion)
+    $Options.Add('packageVersionRetailSuccessAuthenticationTokens', $RetailSuccessAuthenticationTokensVersion)
+    $Options.Add('packageVersionRetailSuccessSDKCore', $RetailSuccessSDKCoreVersion)
+
+
+    $Options | ConvertTo-Json | Out-File $charpConfigPath
+}
 
 $swaggerDocPath=Join-Path -Path $configFolder -ChildPath "swagger.json"
-
-$Options | ConvertTo-Json | Out-File $configPath
 
 Invoke-WebRequest $SwaggerUrl -OutFile $swaggerDocPath
 
 docker run `
     --rm `
     -v ${configFolder}:/opt/swagger-codegen/config `
-    -v ${outFolder}:/opt/swagger-codegen/out `
+    -v ${SDKClientPath}:/opt/swagger-codegen/client `
     retailsuccess/swagger-codegen generate `
         -i /opt/swagger-codegen/config/swagger.json `
         -l  rsCsharp `
-        -c /opt/swagger-codegen/config/config.json `
-        -o /opt/swagger-codegen/out/csharp `
+        -c /opt/swagger-codegen/config/config.csharp.json `
+        -o /opt/swagger-codegen/client/csharp `
         --additional-properties excludeTests=true
-
-#clear out current contents of client folder, then copy new client files over
-if((Test-Path -Path $SDKClientPath))
-{
-    Remove-Item $SDKClientPath
-}
-Move-Item -Path $outFolder -Destination $SDKClientPath
