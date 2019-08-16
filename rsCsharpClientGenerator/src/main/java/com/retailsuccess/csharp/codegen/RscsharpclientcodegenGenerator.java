@@ -402,8 +402,7 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
     supportingFiles.add(new SupportingFile("dependencyinjection.mustache", sourceFolder + "/" + packageName, "DependencyInjectionExtensions.cs"));
     supportingFiles.add(new SupportingFile("clientclass.mustache", sourceFolder + "/" + packageName + "/" + apiPackage,serviceName + "Client.cs"));
     supportingFiles.add(new SupportingFile("endpointinterface.mustache",sourceFolder + "/" + packageName + "/" + apiPackage, "I" + serviceName + "Client.cs"));
-    supportingFiles.add(new SupportingFile("VstsPackageVersion.mustache", ".ci", "VstsPackageVersion.ps1"));
-    supportingFiles.add(new SupportingFile("azure-pipelines.mustache", ".ci", "azure-pipelines.yaml"));
+    supportingFiles.add(new SupportingFile("readme.mustache","","README.md"));
 
     additionalProperties.put("packageName", packageName);
     additionalProperties.put("apiDocPath", apiDocPath);
