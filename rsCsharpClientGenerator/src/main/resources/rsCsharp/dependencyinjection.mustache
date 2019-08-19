@@ -49,7 +49,7 @@ namespace {{packageName}}
             return services;
         }
 
-        public static IHttpClientBuilder ConfigureClientBuilder(IServiceCollection services, Action<{{serviceName}}ClientOptions> clientOptions)
+        private static IHttpClientBuilder ConfigureClientBuilder(IServiceCollection services, Action<{{serviceName}}ClientOptions> clientOptions)
         {
             services.Configure(clientOptions);
 

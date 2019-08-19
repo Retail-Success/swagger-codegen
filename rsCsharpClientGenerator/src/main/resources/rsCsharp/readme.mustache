@@ -1,2 +1,31 @@
 # {{serviceName}} SDK Client
 
+`dotnet add package {{packageName}}`
+
+## Add to service container
+
+```csharp
+services.Add{{serviceName}}Client(
+    options => config.GetSection("{{serviceName}}ClientOptions").Bind(options),
+    options => config.GetSection("IdentityOptions").Bind(options),
+    AuthenticationTypes.Client
+);
+```
+
+OR
+
+```csharp
+services.Add{{serviceName}}Client(
+    options => config.GetSection("{{serviceName}}ClientOptions").Bind(options),
+    options => config.GetSection("IdentityOptions").Bind(options),
+    new ResourceOwnerCredentials(username, password)
+);
+```
+
+## {{serviceName}} Client Options
+
+```json
+{
+    "ApiBaseUrl":"http://localhost:5000"
+}
+```
