@@ -398,7 +398,7 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
 
     supportingFiles.add(new SupportingFile("Solution.mustache", "", packageName + ".sln"));
     supportingFiles.add(new SupportingFile("csproj.mustache", sourceFolder + "/" + packageName, packageName + ".csproj"));
-    supportingFiles.add(new SupportingFile(serviceName+"clientoptions.mustache", sourceFolder + "/" + packageName, "ClientOptions.cs"));
+    supportingFiles.add(new SupportingFile("clientoptions.mustache", sourceFolder + "/" + packageName, serviceName+"ClientOptions.cs"));
     supportingFiles.add(new SupportingFile("dependencyinjection.mustache", sourceFolder + "/" + packageName, "DependencyInjectionExtensions.cs"));
     supportingFiles.add(new SupportingFile("clientclass.mustache", sourceFolder + "/" + packageName + "/" + apiPackage,serviceName + "Client.cs"));
     supportingFiles.add(new SupportingFile("endpointinterface.mustache",sourceFolder + "/" + packageName + "/" + apiPackage, "I" + serviceName + "Client.cs"));
