@@ -26,27 +26,24 @@ if(-Not (Test-Path $configFolder))
     mkdir $configFolder
 }
 
-if(-Not (Test-Path $charpConfigPath))
-{
-    #Create config values for rsCsharp lang if not already there
-    $Options=@{ }
-    $Options.Add('domainOwner',$DomainOwner)
-    $Options.Add('serviceName', $ServiceName)
-    $Options.Add('modelPackage', $ModelPackage)
-    $Options.Add('apiPackage', $ApiPackage)
-    $Options.Add('packageMajorVersion', $PackageMajorVersion)
-    $Options.Add('packageMinorVersion', $PackageMinorVersion)
-    $Options.Add('apiScopesCommaSeperated', ($Scopes -join ","))
-    $Options.Add('packageVersionIdentityModel', $IdentityModelVersion)
-    $Options.Add('packageVersionNitoAsyncExCoordination', $NitoAsyncExCoordinationVersion)
-    $Options.Add('packageVersionRefit', $RefitVersion)
-    $Options.Add('packageVersionRefitHttpClientFactory', $RefitHttpClientFactoryVersion)
-    $Options.Add('packageVersionRetailSuccessAuthenticationTokens', $RetailSuccessAuthenticationTokensVersion)
-    $Options.Add('packageVersionRetailSuccessSDKCore', $RetailSuccessSDKCoreVersion)
 
+#Create config values for rsCsharp lang if not already there
+$Options=@{ }
+$Options.Add('domainOwner',$DomainOwner)
+$Options.Add('serviceName', $ServiceName)
+$Options.Add('modelPackage', $ModelPackage)
+$Options.Add('apiPackage', $ApiPackage)
+$Options.Add('packageMajorVersion', $PackageMajorVersion)
+$Options.Add('packageMinorVersion', $PackageMinorVersion)
+$Options.Add('apiScopesCommaSeperated', ($Scopes -join ","))
+$Options.Add('packageVersionIdentityModel', $IdentityModelVersion)
+$Options.Add('packageVersionNitoAsyncExCoordination', $NitoAsyncExCoordinationVersion)
+$Options.Add('packageVersionRefit', $RefitVersion)
+$Options.Add('packageVersionRefitHttpClientFactory', $RefitHttpClientFactoryVersion)
+$Options.Add('packageVersionRetailSuccessAuthenticationTokens', $RetailSuccessAuthenticationTokensVersion)
+$Options.Add('packageVersionRetailSuccessSDKCore', $RetailSuccessSDKCoreVersion)
 
-    $Options | ConvertTo-Json | Out-File $charpConfigPath
-}
+$Options | ConvertTo-Json | Out-File $charpConfigPath
 
 $swaggerDocPath=Join-Path -Path $configFolder -ChildPath "swagger.json"
 
