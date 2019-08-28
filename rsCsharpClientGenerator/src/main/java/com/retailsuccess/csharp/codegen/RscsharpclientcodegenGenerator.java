@@ -46,8 +46,6 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
   protected String serviceName = "ApiService";
   protected String packageMajorVersion = "1";
   protected String packageMinorVersion = "0";
-  protected String apiScopesCommaSeperated = "";
-  protected String[] apiScopes = new String[] { "" };
   // default package versions
   protected String identityModelVersion = "3.10.10";
   protected String nitoAsyncExVersion = "5.0.0";
@@ -66,9 +64,6 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
   public static final String PACKAGE_MAJOR_VERSION = "packageMajorVersion";
   public static final String PACKAGE_MINOR_VERSION = "packageMinorVersion";
   public static final String PACKAGE_PATCH_VERSION = "packagePathVersion";
-
-  public static final String API_SCOPES_COMMA_SEPERATED = "apiScopesCommaSeperated";
-  public static final String API_SCOPES = "apiScopes";
 
   public static final String pv_IDENTITY_MODEL = "packageVersionIdentityModel";
   public static final String pv_NITO_ASYNCEX_COORDINATION = "packageVersionNitoAsyncExCoordination";
@@ -125,10 +120,6 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
         addOption(this.SERVICE_NAME,
                 "What service is this for? Will be used to build the namespace {domainOwner}.SDK.{serviceName}",
                 this.serviceName);
-
-        addOption(this.API_SCOPES_COMMA_SEPERATED,
-                "Comma seperated api scopes",
-                this.apiScopesCommaSeperated);
 
         addOption(this.pv_IDENTITY_MODEL,
                 "IdentityModel package version",
@@ -250,6 +241,8 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
         regexModifiers.put('m', "Multiline");
         regexModifiers.put('s', "Singleline");
         regexModifiers.put('x', "IgnorePatternWhitespace");
+
+
     }
 
   @Override
@@ -286,11 +279,6 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
 
     if (additionalProperties.containsKey(this.PACKAGE_MINOR_VERSION)) {
       this.packageMinorVersion = additionalProperties.get(this.PACKAGE_MINOR_VERSION).toString();
-    }
-
-    if (additionalProperties.containsKey(this.API_SCOPES_COMMA_SEPERATED)) {
-      this.apiScopes = ((String) additionalProperties.get(this.API_SCOPES_COMMA_SEPERATED)).split(",");
-      additionalProperties.put(this.API_SCOPES, this.apiScopes);
     }
 
     if (additionalProperties.containsKey(this.pv_IDENTITY_MODEL)) {

@@ -26,6 +26,16 @@ services.Add{{serviceName}}Client(
 
 ```json
 {
-    "ApiBaseUrl":"http://localhost:5000"
+    "ApiBaseUrl":"http://localhost:5000",
+    "ClientScopes":[ "scope1", "scope2" ]
+}
+```
+
+## IdentityOptions
+```json
+{
+    "ClientId":"client-id",
+    "ClientSecret":"client-secret",
+    "TokenEndpoint":"http://myTokenEndpoint.example/token"
 }
 ```

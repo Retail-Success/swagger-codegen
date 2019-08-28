@@ -19,8 +19,11 @@ namespace {{packageName}}
             Action<IdentityOptions> identityOptions,
             AuthenticationTypes authenticationType)
         {            
-            var clientBuilder = ConfigureClientBuilder(services, clientOptions);
-            var apiScopes = ApiScope.ParseScopes(new string[]{ {{#apiScopes}}"{{.}}"{{^-last}},{{/-last}}{{/apiScopes}} }).ToArray();
+            services.Configure(clientOptions);
+            var clientBuilder = ConfigureClientBuilder(services);
+            var options = new {{serviceName}}ClientOptions();
+            clientOptions(options);
+            var apiScopes = ApiScope.ParseScopes(options.ClientScopes).ToArray();
             
             switch (authenticationType)
             {
@@ -43,16 +46,17 @@ namespace {{packageName}}
             Action<IdentityOptions> identityOptions,
             ResourceOwnerCredentials credentials)
         {
-            var clientBuilder = ConfigureClientBuilder(services, clientOptions);
-            var apiScopes = ApiScope.ParseScopes(new string[]{ {{#apiScopes}}"{{.}}"{{^-last}},{{/-last}}{{/apiScopes}} }).ToArray();
+            services.Configure(clientOptions);
+            var clientBuilder = ConfigureClientBuilder(services);
+            var options = new {{serviceName}}ClientOptions();
+            clientOptions(options);
+            var apiScopes = ApiScope.ParseScopes(options.ClientScopes).ToArray();
             clientBuilder.AddResourceOwnerCredentialUserTokenHandlers(identityOptions, credentials, apiScopes);
             return services;
         }
 
-        private static IHttpClientBuilder ConfigureClientBuilder(IServiceCollection services, Action<{{serviceName}}ClientOptions> clientOptions)
+        private static IHttpClientBuilder ConfigureClientBuilder(IServiceCollection services)
         {
-            services.Configure(clientOptions);
-
             var clientBuilder = services.AddRefitClient<I{{serviceName}}Client>()
                 .ConfigureHttpClient((serviceProvider, client) =>
                 {
