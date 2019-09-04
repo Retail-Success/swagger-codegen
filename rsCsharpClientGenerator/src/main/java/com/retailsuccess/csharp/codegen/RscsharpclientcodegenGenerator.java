@@ -541,6 +541,11 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
   public void postProcessParameter(CodegenParameter parameter) {
     postProcessPattern(parameter.pattern, parameter.vendorExtensions);
     super.postProcessParameter(parameter);
+
+    if(parameter.required)
+    {
+      parameter.dataType = parameter.dataType.replace("?","");
+    }
   }
 
   @Override
