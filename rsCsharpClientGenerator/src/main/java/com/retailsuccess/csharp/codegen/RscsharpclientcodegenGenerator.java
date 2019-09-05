@@ -491,6 +491,8 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
           if (property.defaultValue == null && property.baseName.equals(parentCodegenModel.discriminator)) {
             property.defaultValue = "\"" + name + "\"";
           }
+
+          
         }
 
         CodegenProperty last = null;
@@ -546,12 +548,22 @@ public class RscsharpclientcodegenGenerator extends AbstractCSharpCodegen {
     {
       parameter.dataType = parameter.dataType.replace("?","");
     }
+
+    if(parameter.isBodyParam)
+    {
+      parameter.required = true;
+    }
   }
 
   @Override
   public void postProcessModelProperty(CodegenModel model, CodegenProperty property) {
     postProcessPattern(property.pattern, property.vendorExtensions);
     super.postProcessModelProperty(model, property);
+
+    if(property.required)
+    {
+      property.datatype = property.datatype.replace("?","");
+    }
   }
 
   /*
