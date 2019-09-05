@@ -16,7 +16,7 @@ namespace {{packageName}}.{{apiPackage}}
         {{#operations}}
         {{#operation}}
         [{{#lambda.titlecase}}{{httpMethod}}{{/lambda.titlecase}}("{{{path}}}")]
-        Task<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Ok{{/returnType}}> {{operationId}}Async ({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{#optionalMethodArgument}} = null{{/optionalMethodArgument}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+        Task<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Ok{{/returnType}}> {{operationId}}Async ({{#allParams}}{{#isQueryParam}}[Query]{{/isQueryParam}}{{#isBodyParam}}[Body]{{/isBodyParam}}{{{dataType}}} {{paramName}}{{^required}}{{#optionalMethodArgument}} = null{{/optionalMethodArgument}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
         {{^-last}}
 
         {{/-last}}
